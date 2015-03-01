@@ -49,7 +49,7 @@ Register = \$r[1-9]?[0-9]
 Identifier = [:jletter:] [:jletterdigit:]*
 Label = [:jletter:] [:jletterdigit:]*:
 
-DecIntegerLiteral = 0 | [1-9][0-9]*
+DecIntegerLiteral = 0 | -?[1-9][0-9]*
 HexIntegerLiteral = 0x[0-9a-fA-F]*
 
 %state STRING

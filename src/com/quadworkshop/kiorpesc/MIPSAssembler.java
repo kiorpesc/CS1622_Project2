@@ -20,6 +20,10 @@ public class MIPSAssembler {
             } else {
                 System.out.println("Errors occurred while assembling, unable to provide sane output.");
             }
+            for(Instruction i : parser.abstractSyntaxList) {
+                System.out.println(i);
+            }
+
         } catch (java.io.IOException e) {
             System.err.println("Unable to open file: " + args[0]);
         } catch (Exception e) {
