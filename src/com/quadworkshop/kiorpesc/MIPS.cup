@@ -11,6 +11,7 @@ scan with {: return lexer.next_token(); :};
 parser code {:
     boolean parsing_failed = false;
     int lineCount = 0;
+    int errorCount = 0;
 
     HashMap<String, Integer> labelLocs = new HashMap<String, Integer>();
     HashMap<String, Integer> idLocs = new HashMap<String, Integer>();
@@ -37,8 +38,15 @@ parser code {:
         if(labelLocs.keySet().contains(id)){
             MIPSOutput.delete(MIPSOutput.length() - 5, MIPSOutput.length()); // remove new line and the four trailing zeros
             StringBuilder addrHex = new StringBuilder(Integer.toHexString(labelLocs.get(id)));
-            while(addrHex.length() < 4){
-                addrHex.insert(0, 0);
+            if(addrHex.length() > 4) {
+              System.out.println("ERROR: Address value larger than 16 bits: instruction " + (lineCount - 1));
+              errorCount++;
+              addrHex.delete(0, addrHex.length());
+              addrHex.append("FFFF");
+            } else {
+                while(addrHex.length() < 4){
+                    addrHex.insert(0, 0);
+                }
             }
             MIPSOutput.append(addrHex);
         } else {
@@ -110,6 +118,11 @@ parser code {:
         int instruction = op << 26;
         instruction = instruction | (s << 21);
         instruction = instruction | (t << 16);
+        if(lit > 0xFFFF){
+            System.out.println("ERROR: Integer literal greater than 16 bits: instruction " + lineCount);
+            errorCount++;
+            lit = 0xFFFF;
+        }
         instruction = instruction | lit;
 
         return instruction;

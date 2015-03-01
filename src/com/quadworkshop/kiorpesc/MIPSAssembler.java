@@ -13,9 +13,13 @@ public class MIPSAssembler {
         try {
             MIPSParser parser = new MIPSParser(new Lexer(
                     new java.io.FileReader(args[0])));
-            parse_tree = parser.debug_parse();
+            parse_tree = parser.parse();
             System.out.println("Got parser output: ");
-            System.out.println(parser.MIPSOutput);
+            if(parser.errorCount == 0) {
+                System.out.println(parser.MIPSOutput);
+            } else {
+                System.out.println("Errors occurred while assembling, unable to provide sane output.");
+            }
         } catch (java.io.IOException e) {
             System.err.println("Unable to open file: " + args[0]);
         } catch (Exception e) {
