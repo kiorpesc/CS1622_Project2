@@ -19,6 +19,8 @@ import java_cup.runtime.*;
   StringBuffer string = new StringBuffer();
   private boolean inDataSegment = false;
 
+    private Symbol lastSym;
+
   private Symbol symbol(int type) {
     return new Symbol(type, yyline, yycolumn);
   }
@@ -58,43 +60,47 @@ HexIntegerLiteral = 0x[0-9a-fA-F]*
 
 /* keywords */
 <YYINITIAL> ".data"             {   inDataSegment = true;
-                                    return symbol(DATA_SECTION); }
+                                    lastSym = symbol(DATA_SECTION);
+                                    return lastSym; }
 <YYINITIAL> ".text"             {   inDataSegment = false;
-                                    return symbol(TEXT_SECTION); }
+                                    lastSym = symbol(TEXT_SECTION);
+                                     return lastSym; }
 
 <YYINITIAL> {
 
-  {Register}                    { return symbol(REGISTER, getRegisterNum(yytext())); }
+  {Register}                    { lastSym = symbol(REGISTER, getRegisterNum(yytext()));
+                                    return lastSym; }
 
   /* instructions */
-  "addi"                        {  return symbol(I_TYPE, Integer.valueOf(0x8)); }
-  "add"                         {  return symbol(R_TYPE, Integer.valueOf(0x20)); }
-  "sub"                         {  return symbol(R_TYPE, Integer.valueOf(0x22)); }
-  "slt"                         {  return symbol(R_TYPE, Integer.valueOf(0x2a)); }
-  "beq"                         {  return symbol(I_TYPE, Integer.valueOf(0x4)); }
-  "bne"                         {  return symbol(I_TYPE, Integer.valueOf(0x5)); }
-  "syscall"                     {  return symbol(R_TYPE, Integer.valueOf(0xc)); }
-  "lbu"                         {  return symbol(I_TYPE, Integer.valueOf(0x24)); }
-  "sb"                          {  return symbol(I_TYPE, Integer.valueOf(0x28)); }
-  "jal"                         {  return symbol(J_TYPE, Integer.valueOf(0x3)); }
-  "jr"                          {  return symbol(R_TYPE, Integer.valueOf(0x8)); }
-  "j"                           {  return symbol(J_TYPE, Integer.valueOf(0x2)); }
-  "lui"                         {  return symbol(I_TYPE, Integer.valueOf(0xf)); }
-  "and"                         {  return symbol(R_TYPE, Integer.valueOf(0x24)); }
-  "ori"                         {  return symbol(I_TYPE, Integer.valueOf(0xd)); }
-  "nor"                         {  return symbol(R_TYPE, Integer.valueOf(0x27)); }
+  "addi"                        {  lastSym = symbol(I_TYPE, Integer.valueOf(0x8));
+                                    return lastSym; }
+  "add"                         {  lastSym = symbol(R_TYPE, Integer.valueOf(0x20)); return lastSym;}
+  "sub"                         {  lastSym = symbol(R_TYPE, Integer.valueOf(0x22)); return lastSym;}
+  "slt"                         {  lastSym = symbol(R_TYPE, Integer.valueOf(0x2a)); return lastSym;}
+  "beq"                         {  lastSym = symbol(I_TYPE, Integer.valueOf(0x4)); return lastSym;}
+  "bne"                         {  lastSym = symbol(I_TYPE, Integer.valueOf(0x5)); return lastSym;}
+  "syscall"                     {  lastSym = symbol(R_TYPE, Integer.valueOf(0xc)); return lastSym;}
+  "lbu"                         {  lastSym = symbol(I_TYPE, Integer.valueOf(0x24)); return lastSym;}
+  "sb"                          {  lastSym = symbol(I_TYPE, Integer.valueOf(0x28)); return lastSym;}
+  "jal"                         {  lastSym = symbol(J_TYPE, Integer.valueOf(0x3)); return lastSym;}
+  "jr"                          {  lastSym = symbol(R_TYPE, Integer.valueOf(0x8)); return lastSym;}
+  "j"                           {  lastSym = symbol(J_TYPE, Integer.valueOf(0x2)); return lastSym;}
+  "lui"                         {  lastSym = symbol(I_TYPE, Integer.valueOf(0xf)); return lastSym;}
+  "and"                         {  lastSym = symbol(R_TYPE, Integer.valueOf(0x24)); return lastSym;}
+  "ori"                         {  lastSym = symbol(I_TYPE, Integer.valueOf(0xd)); return lastSym;}
+  "nor"                         {  lastSym = symbol(R_TYPE, Integer.valueOf(0x27)); return lastSym;}
 
     /* types */
-    ".asciiz"                   { return symbol(TYPE, yytext()); }
+    ".asciiz"                   { lastSym = symbol(TYPE, yytext()); return lastSym;}
 
   /* labels */
-  {Label}                       { return symbol(LABEL, yytext()); }
-  {Identifier}                  { return symbol(IDENT, yytext()); }
+  {Label}                       { lastSym = symbol(LABEL, yytext()); return lastSym;}
+  {Identifier}                  { lastSym = symbol(IDENT, yytext()); return lastSym;}
 
 
   /* literals */
-  {DecIntegerLiteral}            { return symbol(INTEGER_LITERAL, Integer.valueOf(yytext())); }
-  {HexIntegerLiteral}            { return symbol(INTEGER_LITERAL, Integer.valueOf(yytext())); }
+  {DecIntegerLiteral}            { lastSym = symbol(INTEGER_LITERAL, Integer.valueOf(yytext())); return lastSym; }
+  {HexIntegerLiteral}            { lastSym = symbol(INTEGER_LITERAL, Integer.decode(yytext())); return lastSym; }
   \"                             { string.setLength(0); yybegin(STRING); }
 
   /* comments */
@@ -105,14 +111,19 @@ HexIntegerLiteral = 0x[0-9a-fA-F]*
 
   /* separator */
   {Separator}                               { /* ignore */ }
-  {LineTerminator}               { return symbol(EOL); }
+  {LineTerminator}               { if(lastSym == null || lastSym.sym != EOL){
+                                    lastSym = symbol(EOL);
+                                    return lastSym;
+                                   } else lastSym = symbol(EOL);
+                                 }
 
 }
 
 <STRING> {
   \"                             { yybegin(YYINITIAL);
-                                   return symbol(STRING_LITERAL,
-                                   string.toString()); }
+                                   lastSym = symbol(STRING_LITERAL,
+                                   string.toString());
+                                   return lastSym; }
   [^\n\r\"\\]+                   { string.append( yytext() ); }
   \\t                            { string.append('\t'); }
   \\n                            { string.append('\n'); }
@@ -126,4 +137,5 @@ HexIntegerLiteral = 0x[0-9a-fA-F]*
 [^]                              { throw new Error("Illegal character <"+
                                                     yytext()+">"); }
 
-<<EOF>>                          { return symbol(EOF); }
+<<EOF>>                          { lastSym = symbol(EOF);
+                                   return lastSym; }

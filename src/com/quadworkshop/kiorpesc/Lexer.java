@@ -189,11 +189,11 @@ class Lexer implements sym, java_cup.runtime.Scanner {
   private static final String ZZ_ACTION_PACKED_0 =
     "\2\0\1\1\2\2\2\3\2\4\2\5\2\1\5\4"+
     "\1\6\1\4\1\7\1\10\1\11\1\12\1\3\1\4"+
-    "\1\13\1\5\3\0\3\4\1\14\7\4\1\15\2\4"+
-    "\1\16\1\17\1\20\1\21\2\22\3\0\1\23\1\24"+
-    "\1\25\1\26\1\4\1\27\1\30\1\31\1\32\1\33"+
-    "\1\34\1\35\3\0\1\36\1\4\1\37\1\0\1\40"+
-    "\1\4\1\0\1\4\1\41\1\42";
+    "\1\13\1\14\3\0\3\4\1\15\7\4\1\16\2\4"+
+    "\1\17\1\20\1\21\1\22\2\23\3\0\1\24\1\25"+
+    "\1\26\1\27\1\4\1\30\1\31\1\32\1\33\1\34"+
+    "\1\35\1\36\3\0\1\37\1\4\1\40\1\0\1\41"+
+    "\1\4\1\0\1\4\1\42\1\43";
 
   private static int [] zzUnpackAction() {
     int [] result = new int[79];
@@ -426,6 +426,8 @@ class Lexer implements sym, java_cup.runtime.Scanner {
 
   StringBuffer string = new StringBuffer();
   private boolean inDataSegment = false;
+
+    private Symbol lastSym;
 
   private Symbol symbol(int type) {
     return new Symbol(type, yyline, yycolumn);
@@ -821,149 +823,162 @@ class Lexer implements sym, java_cup.runtime.Scanner {
           { throw new Error("Illegal character <"+
                                                     yytext()+">");
           }
-        case 35: break;
-        case 2: 
-          { return symbol(EOL);
-          }
         case 36: break;
+        case 2: 
+          { if(lastSym == null || lastSym.sym != EOL){
+                                    lastSym = symbol(EOL);
+                                    return lastSym;
+                                   } else lastSym = symbol(EOL);
+          }
+        case 37: break;
         case 3: 
           { /* ignore */
           }
-        case 37: break;
-        case 4: 
-          { return symbol(IDENT, yytext());
-          }
         case 38: break;
-        case 5: 
-          { return symbol(INTEGER_LITERAL, Integer.valueOf(yytext()));
+        case 4: 
+          { lastSym = symbol(IDENT, yytext()); return lastSym;
           }
         case 39: break;
-        case 6: 
-          { return symbol(J_TYPE, Integer.valueOf(0x2));
+        case 5: 
+          { lastSym = symbol(INTEGER_LITERAL, Integer.valueOf(yytext())); return lastSym;
           }
         case 40: break;
+        case 6: 
+          { lastSym = symbol(J_TYPE, Integer.valueOf(0x2)); return lastSym;
+          }
+        case 41: break;
         case 7: 
           { string.setLength(0); yybegin(STRING);
           }
-        case 41: break;
+        case 42: break;
         case 8: 
           { string.append( yytext() );
           }
-        case 42: break;
+        case 43: break;
         case 9: 
           { yybegin(YYINITIAL);
-                                   return symbol(STRING_LITERAL,
+                                   lastSym = symbol(STRING_LITERAL,
                                    string.toString());
+                                   return lastSym;
           }
-        case 43: break;
+        case 44: break;
         case 10: 
           { string.append('\\');
           }
-        case 44: break;
-        case 11: 
-          { return symbol(LABEL, yytext());
-          }
         case 45: break;
-        case 12: 
-          { return symbol(I_TYPE, Integer.valueOf(0x28));
+        case 11: 
+          { lastSym = symbol(LABEL, yytext()); return lastSym;
           }
         case 46: break;
-        case 13: 
-          { return symbol(R_TYPE, Integer.valueOf(0x8));
+        case 12: 
+          { lastSym = symbol(INTEGER_LITERAL, Integer.decode(yytext())); return lastSym;
           }
         case 47: break;
-        case 14: 
-          { string.append('\r');
+        case 13: 
+          { lastSym = symbol(I_TYPE, Integer.valueOf(0x28)); return lastSym;
           }
         case 48: break;
-        case 15: 
-          { string.append('\t');
+        case 14: 
+          { lastSym = symbol(R_TYPE, Integer.valueOf(0x8)); return lastSym;
           }
         case 49: break;
-        case 16: 
-          { string.append('\n');
+        case 15: 
+          { string.append('\r');
           }
         case 50: break;
-        case 17: 
-          { string.append('\"');
+        case 16: 
+          { string.append('\t');
           }
         case 51: break;
-        case 18: 
-          { return symbol(REGISTER, getRegisterNum(yytext()));
+        case 17: 
+          { string.append('\n');
           }
         case 52: break;
-        case 19: 
-          { return symbol(R_TYPE, Integer.valueOf(0x20));
+        case 18: 
+          { string.append('\"');
           }
         case 53: break;
-        case 20: 
-          { return symbol(R_TYPE, Integer.valueOf(0x24));
+        case 19: 
+          { lastSym = symbol(REGISTER, getRegisterNum(yytext()));
+                                    return lastSym;
           }
         case 54: break;
-        case 21: 
-          { return symbol(R_TYPE, Integer.valueOf(0x22));
+        case 20: 
+          { lastSym = symbol(R_TYPE, Integer.valueOf(0x20)); return lastSym;
           }
         case 55: break;
-        case 22: 
-          { return symbol(R_TYPE, Integer.valueOf(0x2a));
+        case 21: 
+          { lastSym = symbol(R_TYPE, Integer.valueOf(0x24)); return lastSym;
           }
         case 56: break;
-        case 23: 
-          { return symbol(I_TYPE, Integer.valueOf(0x4));
+        case 22: 
+          { lastSym = symbol(R_TYPE, Integer.valueOf(0x22)); return lastSym;
           }
         case 57: break;
-        case 24: 
-          { return symbol(I_TYPE, Integer.valueOf(0x5));
+        case 23: 
+          { lastSym = symbol(R_TYPE, Integer.valueOf(0x2a)); return lastSym;
           }
         case 58: break;
-        case 25: 
-          { return symbol(I_TYPE, Integer.valueOf(0xf));
+        case 24: 
+          { lastSym = symbol(I_TYPE, Integer.valueOf(0x4)); return lastSym;
           }
         case 59: break;
-        case 26: 
-          { return symbol(I_TYPE, Integer.valueOf(0x24));
+        case 25: 
+          { lastSym = symbol(I_TYPE, Integer.valueOf(0x5)); return lastSym;
           }
         case 60: break;
-        case 27: 
-          { return symbol(R_TYPE, Integer.valueOf(0x27));
+        case 26: 
+          { lastSym = symbol(I_TYPE, Integer.valueOf(0xf)); return lastSym;
           }
         case 61: break;
-        case 28: 
-          { return symbol(J_TYPE, Integer.valueOf(0x3));
+        case 27: 
+          { lastSym = symbol(I_TYPE, Integer.valueOf(0x24)); return lastSym;
           }
         case 62: break;
-        case 29: 
-          { return symbol(I_TYPE, Integer.valueOf(0xd));
+        case 28: 
+          { lastSym = symbol(R_TYPE, Integer.valueOf(0x27)); return lastSym;
           }
         case 63: break;
-        case 30: 
-          { return symbol(I_TYPE, Integer.valueOf(0x8));
+        case 29: 
+          { lastSym = symbol(J_TYPE, Integer.valueOf(0x3)); return lastSym;
           }
         case 64: break;
-        case 31: 
-          { inDataSegment = true;
-                                    return symbol(DATA_SECTION);
+        case 30: 
+          { lastSym = symbol(I_TYPE, Integer.valueOf(0xd)); return lastSym;
           }
         case 65: break;
-        case 32: 
-          { inDataSegment = false;
-                                    return symbol(TEXT_SECTION);
+        case 31: 
+          { lastSym = symbol(I_TYPE, Integer.valueOf(0x8));
+                                    return lastSym;
           }
         case 66: break;
-        case 33: 
-          { return symbol(TYPE, yytext());
+        case 32: 
+          { inDataSegment = true;
+                                    lastSym = symbol(DATA_SECTION);
+                                    return lastSym;
           }
         case 67: break;
-        case 34: 
-          { return symbol(R_TYPE, Integer.valueOf(0xc));
+        case 33: 
+          { inDataSegment = false;
+                                    lastSym = symbol(TEXT_SECTION);
+                                     return lastSym;
           }
         case 68: break;
+        case 34: 
+          { lastSym = symbol(TYPE, yytext()); return lastSym;
+          }
+        case 69: break;
+        case 35: 
+          { lastSym = symbol(R_TYPE, Integer.valueOf(0xc)); return lastSym;
+          }
+        case 70: break;
         default: 
           if (zzInput == YYEOF && zzStartRead == zzCurrentPos) {
             zzAtEOF = true;
             zzDoEOF();
               {
-                return symbol(EOF);
+                lastSym = symbol(EOF);
+                                   return lastSym;
               }
           } 
           else {
