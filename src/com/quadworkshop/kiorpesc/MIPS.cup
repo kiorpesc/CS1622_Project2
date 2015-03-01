@@ -21,17 +21,20 @@ parser code {:
     HashMap<String, Integer> labelLocs = new HashMap<String, Integer>();
     HashMap<String, Integer> idLocs = new HashMap<String, Integer>();
     HashMap<Integer, String> memoryMap = new HashMap<Integer, String>();
+    int memOffset = 0;  // how many words into memory are we?
+    int memStart = 0x10010000;
 
     Lexer lexer;
     public StringBuilder MIPSOutput;
     public StringBuilder dataSection;
+    public boolean inDataSec;
     public ArrayList<Instruction> abstractSyntaxList;
 
     public MIPSParser(Lexer lex) {
         super(lex);
         lexer = lex;
         MIPSOutput = new StringBuilder();
-        dataSection = new StringBuilder();
+        dataSection = new StringBuilder("DATA_SECTION\n");
         abstractSyntaxList = new ArrayList<Instruction>();
     }
 
@@ -184,6 +187,15 @@ parser code {:
         return result;
     }
 
+    public void constructDeclaration(String lab, Object type, String str) {
+        int bytes = str.length() + 1;
+        int words = bytes / 4;
+        if(bytes % 4 != 0) {
+            words += 1;
+        }
+        memMap.put(memOffset, str);
+    }
+
     public void syntax_error(java_cup.runtime.Symbol cur_token) {
         parsing_failed = true;
         System.err.println("Syntax error " + cur_token.toString()
@@ -201,8 +213,8 @@ terminal String     STRING_LITERAL;
 
 /* Non-terminals */
 non terminal            program;
-non terminal            section_list;
-non terminal            expr_list, expr, r_expr, i_expr, j_expr, decl;
+non terminal            section_list, section;
+non terminal            expr_list, expr, r_expr, i_expr, j_expr, decl_list, decl;
 
 /* Precedences
 precedence left PLUS, MINUS;
@@ -216,9 +228,13 @@ start with program;
 program ::=         section_list
                 {: /*System.out.println("SECTION LIST");*/ :}
                 ;
-section_list ::=    DATA_SECTION EOL expr_list TEXT_SECTION EOL expr_list
+section_list ::=    section section
                 |
                     expr_list
+                ;
+section ::=         DATA_SECTION EOL decl_list
+                |
+                    TEXT_SECTION EOL expr_list
                 ;
 expr_list ::=       expr_list expr EOL
                 {:  /*System.out.println("Got to expr_list"); */  :}
@@ -231,8 +247,6 @@ expr ::=            r_expr:out
                     i_expr
                 |
                     j_expr
-                |
-                    decl
                 |
                     LABEL:lab EOL
                 {:  parser.addLabelStart((String)lab); :}
@@ -301,5 +315,8 @@ j_expr ::=          J_TYPE:op INTEGER_LITERAL:addr
                     RESULT = instruction;
                 :}
                 ;
-decl ::=            TYPE STRING_LITERAL
+decl_list ::=       decl_list decl EOL
+                ;
+decl ::=            LABEL:lab TYPE:type STRING_LITERAL:str
+                {: parser.constructDeclaration((String)lab, type, str); :}
                 ;

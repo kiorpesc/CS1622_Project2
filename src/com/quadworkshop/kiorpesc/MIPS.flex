@@ -85,12 +85,7 @@ HexIntegerLiteral = 0x[0-9a-fA-F]*
   "nor"                         {  return symbol(R_TYPE, Integer.valueOf(0x27)); }
 
     /* types */
-    ".ascii"                    { return symbol(TYPE, yytext()); }
     ".asciiz"                   { return symbol(TYPE, yytext()); }
-    ".byte"                     { /* ignore for now */ }
-    ".halfword"                 { /* ignore for now */ }
-    ".word"                     { /* ignore for now */ }
-    ".space"                    { /* ignore for now */ }
 
   /* labels */
   {Label}                       { return symbol(LABEL, yytext()); }
